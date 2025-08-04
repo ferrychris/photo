@@ -63,6 +63,8 @@ export interface Collage {
   name: string;
   code: string;
   created_at: string;
+  user_id: string;
+  photoCount?: number;
   settings: any;
 }
 
@@ -396,15 +398,26 @@ export const useCollageStore = create<CollageStore>((set, get) => ({
   fetchCollages: async () => {
     set({ loading: true, error: null });
     try {
+      // Get current user ID from auth store
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      if (!userId) {
+        set({ error: 'User not authenticated', loading: false, collages: [] });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('collages')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       set({ collages: data as Collage[], loading: false });
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      console.error('Error fetching collages:', error);
+      set({ error: error.message, loading: false, collages: [] });
     }
   },
 
@@ -548,6 +561,14 @@ export const useCollageStore = create<CollageStore>((set, get) => ({
   createCollage: async (name: string) => {
     set({ loading: true, error: null });
     try {
+      // Get current user ID
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      if (!userId) {
+        throw new Error('User must be logged in to create a collage');
+      }
+      
       // Generate a 4-digit random code
       const generateCode = () => {
         const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -560,12 +581,16 @@ export const useCollageStore = create<CollageStore>((set, get) => ({
       
       // Initial code generation
       let code = generateCode();
-      console.log('Creating collage:', name, 'with initial code:', code);
+      console.log('Creating collage:', name, 'with initial code:', code, 'for user:', userId);
       
-      // Try to insert with the generated code
+      // Try to insert with the generated code and user ID
       let { data: collage, error: collageError } = await supabase
         .from('collages')
-        .insert([{ name, code }])
+        .insert([{ 
+          name, 
+          code,
+          user_id: userId 
+        }])
         .select()
         .single();
       
@@ -578,10 +603,14 @@ export const useCollageStore = create<CollageStore>((set, get) => ({
         code = generateCode();
         attempts++;
         
-        // Try again with a new code
+        // Try again with a new code and include user_id
         const result = await supabase
           .from('collages')
-          .insert([{ name, code }])
+          .insert([{ 
+            name, 
+            code,
+            user_id: userId 
+          }])
           .select()
           .single();
           

@@ -4,6 +4,11 @@ import { supabase } from '../lib/supabase';
 type User = {
   id: string;
   email?: string;
+  created_at?: string;
+  user_metadata?: {
+    name?: string;
+    avatar_url?: string;
+  };
 };
 
 type AuthState = {
@@ -188,7 +193,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       
       // Set up auth state listener
-      supabase.auth.onAuthStateChange((event, session) => {
+      supabase.auth.onAuthStateChange((_event, session) => {
         set({ 
           user: session?.user || null,
           session

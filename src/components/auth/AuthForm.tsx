@@ -19,7 +19,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true }) => {
   // If user is already logged in, redirect to dashboard
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 

@@ -1,11 +1,11 @@
 // src/pages/CollageEditorPage.tsx - UPDATED: Left-side settings panel with improved styling
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, Settings, Image, Shield, Video, Pencil, Camera } from 'lucide-react';
 import { useCollageStore } from '../store/collageStore';
 import { useSceneStore } from '../store/sceneStore';
 import { ErrorBoundary } from 'react-error-boundary';
-import Layout from '../components/layout/Layout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import SceneSettings from '../components/collage/SceneSettings';
 import CollageScene from '../components/three/CollageScene';
 import PhotoUploader from '../components/collage/PhotoUploader';
@@ -41,7 +41,6 @@ function SceneErrorFallback({ error, resetErrorBoundary }: { error: Error; reset
 
 const CollageEditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { 
     currentCollage, 
     photos, 
@@ -218,7 +217,7 @@ const CollageEditorPage: React.FC = () => {
       photoSize: 4.0,
       photoBrightness: 1.0,
       photoSpacing: 1.2,
-      photoRotation: 0,
+      photoRotation: false,
       photoTilt: 0,
       photoDepth: 0.1,
       shadowsEnabled: true,
@@ -240,20 +239,20 @@ const CollageEditorPage: React.FC = () => {
 
   if (loading && !currentCollage) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="min-h-[calc(100vh-160px)] flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading collage...</p>
           </div>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   if (error || !currentCollage) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Collage Not Found</h2>
           <p className="text-gray-600 mb-6">
@@ -267,12 +266,12 @@ const CollageEditorPage: React.FC = () => {
             Try Another Code
           </Link>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="min-h-screen bg-black">
         {/* Header */}
         <div className="bg-gray-900 border-b border-gray-700">
@@ -501,7 +500,7 @@ const CollageEditorPage: React.FC = () => {
           />
         </div>
       )}
-    </Layout>
+    </DashboardLayout>
   );
 };
 

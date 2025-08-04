@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCollageStore, type Collage } from '../store/collageStore';
-import { Image, ExternalLink, Edit, Trash2, Pencil, Camera, Plus } from 'lucide-react';
+import { useUsageLimit } from '../hooks/useSubscription';
+import { Image, ExternalLink, Edit, Trash2, Pencil, Camera, Plus, Crown } from 'lucide-react';
 import CollageNameModal from '../components/collage/CollageNameModal';
-import Layout from '../components/layout/Layout';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import SubscriptionManager from '../components/subscription/SubscriptionManager';
+
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { collages, loading, error, fetchCollages, deleteCollage, createCollage } = useCollageStore();
+  const { canUse: canCreatePhotosphere } = useUsageLimit('photospheres', collages.length);
   const [selectedCollage, setSelectedCollage] = useState<Collage | null>(null);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -48,6 +52,12 @@ const DashboardPage = () => {
     e.preventDefault();
     if (!newCollageName.trim()) return;
 
+    // Check if user can create more photospheres
+    if (!canCreatePhotosphere) {
+      alert('You have reached your PhotoSphere limit. Please upgrade your plan to create more.');
+      return;
+    }
+
     setIsCreating(true);
     try {
       await createCollage(newCollageName);
@@ -75,32 +85,42 @@ const DashboardPage = () => {
 
   if (loading && collages.length === 0) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/20 mx-auto"></div>
             <p className="mt-4 text-white/60">Loading your collages...</p>
           </div>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="p-8 text-center">
             <p className="text-red-400">Error loading collages. Please try again later.</p>
           </div>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Subscription Overview */}
+        <div className="mb-8">
+          <SubscriptionManager 
+            photosphereCount={collages.length}
+            photoCount={collages.reduce((total, collage) => total + (collage.photoCount || 0), 0)}
+            showUsage={true}
+            showFeatures={false}
+          />
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -112,13 +132,29 @@ const DashboardPage = () => {
                 Create and manage your 3D photo collages
               </p>
             </div>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Create PhotoSphere
-            </button>
+            {canCreatePhotosphere ? (
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create PhotoSphere
+              </button>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <div className="text-right">
+                  <p className="text-sm text-gray-400">PhotoSphere limit reached</p>
+                  <p className="text-xs text-gray-500">Upgrade to create more</p>
+                </div>
+                <button
+                  onClick={() => navigate('/dashboard/profile')}
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -160,12 +196,10 @@ const DashboardPage = () => {
                           <Image className="w-3 h-3 mr-1" />
                           Code: {collage.code}
                         </div>
-                        {collage.photoCount !== undefined && (
-                          <span className="text-xs text-gray-400">{collage.photoCount} photos</span>
-                        )}
+                        {/* Photo count can be added here if available in the future */}
                       </div>
                       <p className="text-xs text-gray-500">
-                        Created: {new Date(collage.created_at || collage.createdAt).toLocaleDateString()}
+                        Created: {new Date(collage.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     
@@ -294,7 +328,7 @@ const DashboardPage = () => {
           />
         )}
       </div>
-    </Layout>
+    </DashboardLayout>
   );
 };
 

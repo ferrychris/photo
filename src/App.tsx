@@ -1,36 +1,48 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { 
   createBrowserRouter, 
   RouterProvider, 
   Route, 
   createRoutesFromElements,
-  Navigate
+  Navigate,
+  Outlet
 } from 'react-router-dom';
-
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { useAuthStore } from './store/authStore';
+import { AuthProvider } from './contexts/AuthContext';
 // Pages
 import LandingPage from './pages/LandingPage';
-import ShowcasePage from './pages/ShowcasePage'; // ADD THIS LINE
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
-import PricingPage from './pages/PricingPage';
+import PhotoSpheresPage from './pages/PhotoSpheresPage';
+import Profile from './components/dashboard/Profile';
 import CollageEditorPage from './pages/CollageEditorPage';
 import CollageViewerPage from './pages/CollageViewerPage';
-import CollageModerationPage from './pages/CollageModerationPage';
 import PhotoboothPage from './pages/PhotoboothPage';
 import PhotoboothSettingsPage from './pages/PhotoboothSettingsPage';
+import CollageModerationPage from './pages/CollageModerationPage';
+import PricingPage from './pages/PricingPage';
+import FAQPage from './pages/FAQPage';
+import JoinCollage from './pages/JoinCollage';
+import Custom404Page from './pages/404';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import BlogPostAI from './pages/BlogPostAI';
 import BlogPostPricing from './pages/BlogPostPricing';
-import JoinCollage from './pages/JoinCollage';
-import Custom404Page from './pages/404';
-import FAQPage from './pages/FAQPage';
+import ShowcasePage from './pages/ShowcasePage';
+
+// Admin Components
 
 // Create router with future flag enabled
+// Root component that will be wrapped with AuthProvider
+const Root = () => {
+  return <Outlet />;
+};
+
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route>
+    <Route element={<AuthProvider><Root /></AuthProvider>}>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/showcase" element={<ShowcasePage />} /> {/* ADD THIS LINE */}
@@ -53,22 +65,32 @@ const router = createBrowserRouter(
       <Route path="/dashbaord" element={<Navigate to="/dashboard" replace />} />
       
       {/* Protected routes - require authentication */}
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/dashboard/collage/:id" element={<CollageEditorPage />} />
-      <Route path="/dashboard/collage/:id/photobooth-settings" element={<PhotoboothSettingsPage />} />
-      <Route path="/collage/:id/moderation" element={<CollageModerationPage />} />
-      <Route path="/moderation/:id" element={<CollageModerationPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/dashboard/photospheres" element={<ProtectedRoute><PhotoSpheresPage /></ProtectedRoute>} />
+      <Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/dashboard/collage/:id" element={<ProtectedRoute><CollageEditorPage /></ProtectedRoute>} />
+      <Route path="/dashboard/collage/:id/photobooth-settings" element={<ProtectedRoute><PhotoboothSettingsPage /></ProtectedRoute>} />
+      <Route path="/collage/:id/moderation" element={<ProtectedRoute><CollageModerationPage /></ProtectedRoute>} />
+      <Route path="/moderation/:id" element={<ProtectedRoute><CollageModerationPage /></ProtectedRoute>} />
+      
+     
     </Route>
   ),
   {
     future: {
-      v7_relativeSplatPath: true,
-      v7_startTransition: true
+      v7_relativeSplatPath: true
     }
   }
 );
 
 function App() {
+  const { initialize } = useAuthStore();
+  
+  // Initialize auth state when the app loads
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+  
   return (
     <RouterProvider router={router} />
   );

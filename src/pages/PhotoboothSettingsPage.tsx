@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Upload, Save, Trash2, Eye, EyeOff, Palette, Image, Frame, Camera, ChevronLeft, Smartphone, Tablet } from 'lucide-react';
 import { useCollageStore } from '../store/collageStore';
 import { supabase } from '../lib/supabase';
-import Layout from '../components/layout/Layout';
+import DashboardLayout from '../components/layout/DashboardLayout';
 
 const PhotoboothSettingsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -404,20 +404,20 @@ const PhotoboothSettingsPage = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/20 mx-auto"></div>
             <p className="mt-4 text-white/60">Loading collage...</p>
           </div>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   if (error || !currentCollage) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="p-8 text-center">
             <p className="text-red-400">Error loading collage. Please try again later.</p>
@@ -430,12 +430,12 @@ const PhotoboothSettingsPage = () => {
             </Link>
           </div>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="min-h-screen">
         {/* Header */}
         <div className="bg-black/30 backdrop-blur-md border-b border-white/10">
@@ -793,7 +793,7 @@ const PhotoboothSettingsPage = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </DashboardLayout>
   );
 };
 

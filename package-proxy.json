@@ -1,0 +1,20 @@
+{
+  "name": "photosphere-webhook-proxy",
+  "version": "1.0.0",
+  "description": "Webhook proxy service for Stripe to Supabase integration",
+  "main": "webhook-proxy.js",
+  "scripts": {
+    "start": "node webhook-proxy.js",
+    "dev": "nodemon webhook-proxy.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
